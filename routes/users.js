@@ -1,16 +1,20 @@
 var express = require('express');
 var router = express.Router();
 
+
 // ...rest of the initial code omitted for simplicity.
 const { check, validationResult } = require('express-validator');
 const User = require('../models/User')
 const passport = require('passport')
+const csrf = require('csurf')
 
+
+router.use(csrf());
 
 /* GET users listing. */
 router.get('/signup', notLoggedIn, function (req, res, next) {
   var messageeError = req.flash('signupError')
-  res.render('user/signup', { message: messageeError })
+  res.render('user/signup', { message: messageeError ,token : req.csrfToken() })
 });
 
 
@@ -56,7 +60,8 @@ router.get('/profile',isLoggedIn ,(req, res, next) => {
 
 router.get('/signin',notLoggedIn ,(req, res, next) => {
   var massagesError = req.flash('signinError');
-  res.render('user/signin', { massages: massagesError });
+  console.log(req.csrfToken())
+  res.render('user/signin', { massages: massagesError , token : req.csrfToken() });
 })
 
 router.post('/signin', [
