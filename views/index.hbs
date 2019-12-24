@@ -1,0 +1,28 @@
+
+{{#each products }}
+<div class="row">
+  {{#each this }}
+  <div class="col-sm">
+    <div class="card">
+      <div class="center-block">
+      <img src="{{this.imagePath}}" class="card-img-top" alt="...">
+      </div>
+      <div class="card-body">
+        <h5 class="card-title">{{this.productName}}</h5>
+        <p class="card-text">
+          Storge Capacity : {{this.information.storageCapacity}} GB <br>
+          Number of SIM :{{this.information.numberOfSIM }}<br>
+          Memory RAM : {{this.information.memoryRAM}} GB <br>
+          Color :{{this.information.color}}
+        </p>
+        <div>
+          <div class="price float-left">$ {{this.price}}</div>
+          <a href="#" class="btn btn-success float-right ">Buy</a>
+        </div>
+      </div>
+    </div>   
+  </div>
+ {{/each}}
+</div>
+{{/each}}
+   
