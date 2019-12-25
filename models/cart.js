@@ -5,12 +5,24 @@ var Schema = mongoose.Schema;
 const cartSchema = new Schema({
    
     _id :{
-        required :true ,
+        required : true ,
         type : String ,
 
     },
-    P
+    totalquantity :{
+             required :true ,
+             type: Number ,
+    },
+    totalPrice :{
+        required : true ,
+        type : Number ,
 
+    },
+    selectedProduct :{
+        required : true ,
+        type : Array ,
+
+    }
 
 });
 //create and pass the schema
