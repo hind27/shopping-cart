@@ -27,12 +27,16 @@ router.get('/', function (req, res, next) {
 
 
 router.get('/addTocart/:id/:price/:name', (req, res, next) => {
+
+  
+  
   var productId = req.user._id;
   const newproductPrice =parseInt(req.params.price ,10)
   const newProduct = {
    _id: req.params.id,
     price: newproductPrice,
-    name : req.params.name  
+    name : req.params.name ,
+    quantity : 1 ,
   }
   
   Cart.findById(productId, (err, cart) => {
@@ -63,7 +67,7 @@ router.get('/addTocart/:id/:price/:name', (req, res, next) => {
         }
       }
       if(indexofProduct>=0){
-      console.log('updat product of index'+ indexofProduct)
+      cart.selectedProduct[indexofProduct].quantity = cart.selectedProduct[indexofProduct].quantity + 1 ;
       }else{
         cart.totalquantity =cart.totalquantity + 1 ;
         cart.totalPrice =  cart.totalPrice + newproductPrice ;
@@ -77,7 +81,7 @@ router.get('/addTocart/:id/:price/:name', (req, res, next) => {
         })
       }
     } 
-  })
+  }) 
    res.redirect('/')
 })
 module.exports = router;
