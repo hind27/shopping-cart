@@ -1,7 +1,7 @@
 const passport =require('passport')
 const localStrategy = require('passport-local').Strategy;
 const User = require('../models/User');
-
+const Cart = require('../models/cart')
 
 passport.serializeUser(( user,done)=>{
     return done(null , user.id);
@@ -9,7 +9,14 @@ passport.serializeUser(( user,done)=>{
 
 passport.deserializeUser((id,done)=>{
     User.findById( id  ,('email') ,(err ,user)=>{
-      return done(err , user);
+      Cart.findById(id , (error , cart)=>{
+        if(!cart){
+            return done(err , user)
+        }
+        user.cart = cart ;
+        return done(err , user);
+      })
+      
   })
 })
 

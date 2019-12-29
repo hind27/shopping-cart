@@ -12,9 +12,9 @@ router.get('/', function (req, res, next) {
     if (error) {
       console.log(error)
     }
-
     var ProductGrid = [];
     var coldGrid = 3;
+
     // method make array of array for make Grid
     for (var i = 0; i < doc.length; i += coldGrid) {
       ProductGrid.push(doc.slice(i, i + coldGrid))
@@ -27,61 +27,69 @@ router.get('/', function (req, res, next) {
 
 
 router.get('/addTocart/:id/:price/:name', (req, res, next) => {
-
-  
-  
   var productId = req.user._id;
-  const newproductPrice =parseInt(req.params.price ,10)
+  const newproductPrice = parseInt(req.params.price, 10)
   const newProduct = {
-   _id: req.params.id,
+    _id: req.params.id,
     price: newproductPrice,
-    name : req.params.name ,
-    quantity : 1 ,
+    name: req.params.name,
+    quantity: 1,
   }
-  
+
   Cart.findById(productId, (err, cart) => {
     if (err) {
       console.log(err)
     }
-    if(!cart){
+    if (!cart) {
       const newCart = new Cart({
-        _id : productId ,
-        totalquantity :  1,
-        totalPrice : newproductPrice ,
-        selectedProduct :[newProduct]
+        _id: productId,
+        totalquantity: 1,
+        totalPrice: newproductPrice,
+        selectedProduct: [newProduct]
       })
 
-      newCart.save((error ,doc)=>{
-        if(error){
+      newCart.save((error, doc) => {
+        if (error) {
           console.log(error)
         }
         console.log(doc)
       })
     }
-    if(cart){
-      var indexofProduct = -1 ;
+    if (cart) {
+      var indexofProduct = -1;
       for (let i = 0; i < cart.selectedProduct.length; i++) {
-        if(req.params.id === cart.selectedProduct[i]._id){
+        if (req.params.id === cart.selectedProduct[i]._id) {
           indexofProduct = i;
-          break ;
+          break;
         }
       }
-      if(indexofProduct>=0){
-      cart.selectedProduct[indexofProduct].quantity = cart.selectedProduct[indexofProduct].quantity + 1 ;
-      }else{
-        cart.totalquantity =cart.totalquantity + 1 ;
-        cart.totalPrice =  cart.totalPrice + newproductPrice ;
-        cart.selectedProduct .push(newProduct)
-        cart.updateOne({_id : productId } ,{$set : cart} ,(error ,doc)=>{
-          if(error){
+      if (indexofProduct >= 0) {
+        cart.selectedProduct[indexofProduct].quantity = cart.selectedProduct[indexofProduct].quantity + 1;
+        cart.selectedProduct[indexofProduct].price = cart.selectedProduct[indexofProduct].newproductPrice;
+        cart.totalquantity = cart.totalPrice + 1;
+        cart.updateOne({ _id: productId }, { $set: cart }, (error, doc) => {
+          if (error) {
+            console.log(error)
+          }
+          console.log(doc)
+          console.log(cart)
+        })
+
+      } else {
+        cart.totalquantity = cart.totalquantity + 1;
+        cart.totalPrice = cart.totalPrice + newproductPrice;
+        cart.selectedProduct.push(newProduct)
+
+        cart.updateOne({ _id: productId }, { $set: cart }, (error, doc) => {
+          if (error) {
             console.log(error)
           }
           console.log(doc)
           console.log(cart)
         })
       }
-    } 
-  }) 
-   res.redirect('/')
+    }
+  })
+  res.redirect('/')
 })
 module.exports = router;
