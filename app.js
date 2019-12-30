@@ -30,6 +30,13 @@ app.set('view engine', '.hbs');
 app.engine('.hbs' ,expressHbs({defaultLayout:'layout', extname : '.hbs' , helpers : { 
   add : function(value){
   return value + 1 ;
+} ,
+checkQuantity : function(value){
+  if (value<=1){
+  return true ; 
+  }else{
+    return false ;
+  }
 }
 }}));
 

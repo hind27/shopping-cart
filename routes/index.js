@@ -38,7 +38,7 @@ router.get('/', function (req, res, next) {
 
 
 router.get('/addTocart/:id/:price/:name', (req, res, next) => {
- 
+
   var productId = req.user._id;
   const newproductPrice = parseInt(req.params.price, 10)
   const newProduct = {
@@ -78,9 +78,9 @@ router.get('/addTocart/:id/:price/:name', (req, res, next) => {
       if (indexofProduct >= 0) {
         cart.selectedProduct[indexofProduct].quantity = cart.selectedProduct[indexofProduct].quantity + 1;
         cart.selectedProduct[indexofProduct].price = cart.selectedProduct[indexofProduct].price + newproductPrice;
-        cart.totalquantity = cart.totalPrice + 1;
-        cart.totalPrice = cart.totalPrice + newproductPrice ;
-        
+        cart.totalquantity = cart.totalquantity + 1;
+        cart.totalPrice = cart.totalPrice + newproductPrice;
+
         Cart.updateOne({ _id: productId }, { $set: cart }, (error, doc) => {
           if (error) {
             console.log(error)
@@ -94,7 +94,7 @@ router.get('/addTocart/:id/:price/:name', (req, res, next) => {
         cart.totalPrice = cart.totalPrice + newproductPrice;
         cart.selectedProduct.push(newProduct)
 
-        Cart.updateOne({ _id: productId }, {$set: cart }, (error, doc) => {
+        Cart.updateOne({ _id: productId }, { $set: cart }, (error, doc) => {
           if (error) {
             console.log(error)
           }
@@ -107,19 +107,81 @@ router.get('/addTocart/:id/:price/:name', (req, res, next) => {
   res.redirect('/')
 })
 
-router.get('/shopping-cart' ,(req , res , next)=>{
-  if(!req.isAuthenticated()){
+router.get('/shopping-cart', (req, res, next) => {
+  if (!req.isAuthenticated()) {
     res.redirect('/users/signin')
-    return ;
+    return;
   }
-  if(!req.user.cart){
-    res.redirect('/')
-       return ;
-}
- const userCart =req.user.cart
- const totalProducts = req.user.cart.totalquantity
- res.render('shoppingcart',{userCart : userCart ,checkuser : true ,totalProducts : totalProducts})
+  if (!req.user.cart) {
+    res.render('shoppingcart', { checkuser: true, totalProducts: 0 })
+    return;
+  }
+  const userCart = req.user.cart
+  const totalProducts = req.user.cart.totalquantity
+  res.render('shoppingcart', { userCart: userCart, checkuser: true, totalProducts: totalProducts })
 })
 
+router.get('/increaseProduct/:index', (req, res, next) => {
+  const index = req.params.index
+  const userCart = req.user.cart
+  const productPrice = userCart.selectedProduct[index].price / userCart.selectedProduct[index].quantity
+  userCart.selectedProduct[index].quantity = userCart.selectedProduct[index].quantity + 1;
+  userCart.selectedProduct[index].price = userCart.selectedProduct[index].price + productPrice;
 
+  userCart.totalquantity = userCart.totalquantity + 1
+  userCart.totalPrice = userCart.totalPrice + productPrice;
+  Cart.updateOne({ _id: userCart._id }, { $set: userCart }, (err, doc) => {
+    if (err) {
+      console.log(error)
+    }
+    console.log(doc)
+    res.redirect('/shopping-cart')
+  })
+
+})
+
+router.get('/decreaseProduct', (req, res, next) => {
+  const index = req.params.index
+  const userCart = req.user.cart
+  const productPrice = userCart.selectedProduct[index].price / userCart.selectedProduct[index].quantity
+
+  userCart.selectedProduct[index].quantity = userCart.selectedProduct[index].quantity - 1;
+  userCart.selectedProduct[index].price = userCart.selectedProduct[index].price - productPrice;
+
+  userCart.totalquantity = userCart.totalquantity - 1
+  userCart.totalPrice = userCart.totalPrice - productPrice;
+  Cart.updateOne({ _id: userCart._id }, { $set: userCart }, (err, doc) => {
+    if (err) {
+      console.log(error)
+    }
+    console.log(doc)
+    res.redirect('/shopping-cart')
+  })
+})
+router.get('/deleteProduct/:index', (req, res, next) => {
+  const index = req.params.index;
+  const userCart = req.user.cart;
+ if(userCart.selectedProduct.length<=1){
+   Cart.deleteOne({ _id: userCart._id }, (err, doc) => {
+    if (err) {
+      console.log(error)
+    }
+    console.log(doc)   
+    res.redirect('/shopping-cart')
+
+   })
+ } else{
+  userCart.totalPrice = userCart.totalPrice - userCart.selectedProduct[index].price;
+  userCart.totalquantity = userCart.totalquantity - userCart.selectedProduct[index].quantity;
+
+  userCart.selectedProduct.splice(index, 1);
+  Cart.updateOne({ _id: userCart._id }, { $set: userCart }, (err, doc) => {
+    if (err) {
+      console.log(error)
+    }
+    console.log(doc)
+    res.redirect('/shopping-cart')
+  })
+ }
+})
 module.exports = router;
