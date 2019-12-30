@@ -1,0 +1,32 @@
+<h1>Shopping cart</h1>
+
+<div style="padding-top: 30px;">
+    <table class="table table-bordered">
+        <thead>
+            <tr class="table-active">
+                <th scope="col" class="text-center">#</th>
+                <th scope="col" class="text-center">Product Name</th>
+                <th scope="col" class="text-center">Product Quantity</th>
+                <th scope="col" class="text-center">Product Price</th>
+                </tr >
+        </thead>
+        <tbody>
+            {{#each userCart.selectedProduct as  |val index|  }}
+
+            <tr>
+                <th scope="row" class="text-center">{{add @index}}</th>
+                <td class="text-center">{{val.name}}</td>
+                <td class="text-center">{{val.quantity}}</td>
+                <td class="text-center">{{val.price}}</td>
+            </tr>
+            {{/each}}
+
+            <tr class="table-info">
+
+                <td colspan="3" style="font-weight: bold;" class="text-center">Total price</td>
+                <td> ${{userCart.totalPrice}}</td>
+            </tr>
+        </tbody>
+
+    </table>
+</div>

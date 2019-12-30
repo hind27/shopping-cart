@@ -9,6 +9,7 @@ const passport = require('passport')
 const csrf = require('csurf')
 
 
+
 router.use(csrf());
 
 /* GET users listing. */
@@ -54,7 +55,12 @@ router.post('/signup', [
 
 
 router.get('/profile',isLoggedIn ,(req, res, next) => {
-  res.render('user/profile',{checkuser :true , checkProfile :true})
+ if(req.user.cart){
+    totalProducts = req.user.cart.totalquantity
+  }else{
+    totalquantity = 0
+ }
+  res.render('user/profile',{checkuser :true , checkProfile :true , totalProducts : totalProducts })
 })
 
 

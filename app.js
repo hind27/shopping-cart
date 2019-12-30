@@ -27,7 +27,11 @@ require('./config/passport');
 // view engine setup
 
 app.set('view engine', '.hbs');
-app.engine('.hbs' ,expressHbs({defaultLayout:'layout', extname : '.hbs'}));
+app.engine('.hbs' ,expressHbs({defaultLayout:'layout', extname : '.hbs' , helpers : { 
+  add : function(value){
+  return value + 1 ;
+}
+}}));
 
 app.use(logger('dev'));
 app.use(express.json());

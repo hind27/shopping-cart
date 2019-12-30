@@ -7,15 +7,15 @@ passport.serializeUser(( user,done)=>{
     return done(null , user.id);
 })
 
-passport.deserializeUser((id,done)=>{
+passport.deserializeUser((id , done)=>{
     User.findById( id  ,('email') ,(err ,user)=>{
-      Cart.findById(id , (error , cart)=>{
+      Cart.findById(id , (err , cart)=>{
         if(!cart){
             return done(err , user)
         }
         user.cart = cart ;
-        return done(err , user);50
-        
+        return done(err , user);
+
       })
       
   })

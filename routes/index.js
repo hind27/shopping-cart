@@ -6,8 +6,14 @@ const Cart = require('../models/cart')
 
 /* GET home page. */
 router.get('/', function (req, res, next) {
-  console.log(req.session);
-  console.log(req.user);
+  var totalProducts = null;
+  if (req.isAuthenticated()) {
+    if (req.user.cart) {
+      totalProducts = req.user.cart.totalquantity;
+    } else {
+      totalProducts = 0;
+    }
+  }
   Product.find({}, (error, doc) => {
     if (error) {
       console.log(error)
@@ -20,13 +26,19 @@ router.get('/', function (req, res, next) {
       ProductGrid.push(doc.slice(i, i + coldGrid))
     }
 
-    res.render('index', { title: 'Shopping-cart', products: ProductGrid, checkuser: req.isAuthenticated() });
+    res.render('index', {
+      title: 'Shopping-cart'
+      , products: ProductGrid
+      , checkuser: req.isAuthenticated()
+      , totalProducts: totalProducts
+    });
   })
 
 })
 
 
 router.get('/addTocart/:id/:price/:name', (req, res, next) => {
+ 
   var productId = req.user._id;
   const newproductPrice = parseInt(req.params.price, 10)
   const newProduct = {
@@ -57,7 +69,7 @@ router.get('/addTocart/:id/:price/:name', (req, res, next) => {
     }
     if (cart) {
       var indexofProduct = -1;
-      for (let i = 0; i < cart.selectedProduct.length; i++) {
+      for (var i = 0; i < cart.selectedProduct.length; i++) {
         if (req.params.id === cart.selectedProduct[i]._id) {
           indexofProduct = i;
           break;
@@ -65,9 +77,11 @@ router.get('/addTocart/:id/:price/:name', (req, res, next) => {
       }
       if (indexofProduct >= 0) {
         cart.selectedProduct[indexofProduct].quantity = cart.selectedProduct[indexofProduct].quantity + 1;
-        cart.selectedProduct[indexofProduct].price = cart.selectedProduct[indexofProduct].newproductPrice;
+        cart.selectedProduct[indexofProduct].price = cart.selectedProduct[indexofProduct].price + newproductPrice;
         cart.totalquantity = cart.totalPrice + 1;
-        cart.updateOne({ _id: productId }, { $set: cart }, (error, doc) => {
+        cart.totalPrice = cart.totalPrice + newproductPrice ;
+        
+        Cart.updateOne({ _id: productId }, { $set: cart }, (error, doc) => {
           if (error) {
             console.log(error)
           }
@@ -80,7 +94,7 @@ router.get('/addTocart/:id/:price/:name', (req, res, next) => {
         cart.totalPrice = cart.totalPrice + newproductPrice;
         cart.selectedProduct.push(newProduct)
 
-        cart.updateOne({ _id: productId }, { $set: cart }, (error, doc) => {
+        Cart.updateOne({ _id: productId }, {$set: cart }, (error, doc) => {
           if (error) {
             console.log(error)
           }
@@ -92,4 +106,20 @@ router.get('/addTocart/:id/:price/:name', (req, res, next) => {
   })
   res.redirect('/')
 })
+
+router.get('/shopping-cart' ,(req , res , next)=>{
+  if(!req.isAuthenticated()){
+    res.redirect('/users/signin')
+    return ;
+  }
+  if(!req.user.cart){
+    res.redirect('/')
+       return ;
+}
+ const userCart =req.user.cart
+ const totalProducts = req.user.cart.totalquantity
+ res.render('shoppingcart',{userCart : userCart ,checkuser : true ,totalProducts : totalProducts})
+})
+
+
 module.exports = router;
