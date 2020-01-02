@@ -1,11 +1,14 @@
 var express = require('express');
 var router = express.Router();
 
+const stripe = require('stripe')('sk_test_RVDx5vSzXrfSe3NfZQo7zEpQ00D0aSMO1Z');
 const Product = require('../models/Product');
 const Cart = require('../models/cart')
+var Order = require('../models/order');
 
 /* GET home page. */
 router.get('/', function (req, res, next) {
+  const successMas = req.flash('success')[0];
   var totalProducts = null;
   if (req.isAuthenticated()) {
     if (req.user.cart) {
@@ -30,7 +33,8 @@ router.get('/', function (req, res, next) {
       title: 'Shopping-cart'
       , products: ProductGrid
       , checkuser: req.isAuthenticated()
-      , totalProducts: totalProducts
+      , totalProducts: totalProducts,
+      successMas: successMas,
     });
   })
 
@@ -161,27 +165,89 @@ router.get('/decreaseProduct', (req, res, next) => {
 router.get('/deleteProduct/:index', (req, res, next) => {
   const index = req.params.index;
   const userCart = req.user.cart;
- if(userCart.selectedProduct.length<=1){
-   Cart.deleteOne({ _id: userCart._id }, (err, doc) => {
-    if (err) {
-      console.log(error)
-    }
-    console.log(doc)   
-    res.redirect('/shopping-cart')
+  if (userCart.selectedProduct.length <= 1) {
+    Cart.deleteOne({ _id: userCart._id }, (err, doc) => {
+      if (err) {
+        console.log(error)
+      }
+      console.log(doc)
+      res.redirect('/shopping-cart')
 
-   })
- } else{
-  userCart.totalPrice = userCart.totalPrice - userCart.selectedProduct[index].price;
-  userCart.totalquantity = userCart.totalquantity - userCart.selectedProduct[index].quantity;
+    })
+  } else {
+    userCart.totalPrice = userCart.totalPrice - userCart.selectedProduct[index].price;
+    userCart.totalquantity = userCart.totalquantity - userCart.selectedProduct[index].quantity;
 
-  userCart.selectedProduct.splice(index, 1);
-  Cart.updateOne({ _id: userCart._id }, { $set: userCart }, (err, doc) => {
-    if (err) {
-      console.log(error)
-    }
-    console.log(doc)
-    res.redirect('/shopping-cart')
-  })
- }
+    userCart.selectedProduct.splice(index, 1);
+    Cart.updateOne({ _id: userCart._id }, { $set: userCart }, (err, doc) => {
+      if (err) {
+        console.log(error)
+      }
+      console.log(doc)
+      res.redirect('/shopping-cart')
+    })
+  }
 })
+
+router.get('/checkout', (req, res, next) => {
+  const totalProducts = req.user.cart.totalquantity
+  const errormas = req.flash('error')[0];
+  res.render('checkout', {
+    checkuser: true,
+    totalProducts: totalProducts,
+    totalPrice: req.user.cart.totalPrice,
+    errormas: errormas
+  })
+})
+
+router.post('/checkout', (req, res, next) => {
+  stripe.charges.create(
+    {
+      amount: req.user.cart.totalPrice * 100,
+      currency: "usd",
+      source: req.body.stripeToken,
+      description: "charge for  test@example.com"
+    },
+    function (err, charge) {
+      if (err) {
+        // Deal with an error (will be `null` if no error occurred).
+        console.log(err)
+        req.flash('error', err.raw.message);
+        res.redirect('/checkout')
+
+      }
+      console.log(charge)
+      req.flash('success', 'Successfully bought product!')
+
+      const order = new Order({
+        user: req.user._id,
+        cart: req.user.cart,
+        address: req.body.address,
+        name: req.body.name,
+        paymentId: charge.id,
+        orderPrice: req.user.cart.totalPrice,
+      });
+
+      order.save((err, result) => {
+        if (err) {
+          console.log(err)
+        }
+        console.log(result)
+        
+        Cart.deleteOne({ _id: req.user.cart._id }, (err, doc) => {
+          if (err) {
+            console.log(err)
+          }
+          console.log(doc)
+          res.redirect('/')
+        })
+      })
+   
+
+    }
+  );
+
+})
+
+
 module.exports = router;

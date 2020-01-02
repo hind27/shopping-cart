@@ -7,6 +7,7 @@ const { check, validationResult } = require('express-validator');
 const User = require('../models/User')
 const passport = require('passport')
 const csrf = require('csurf')
+var Order = require('../models/order');
 
 
 
@@ -58,9 +59,16 @@ router.get('/profile',isLoggedIn ,(req, res, next) => {
  if(req.user.cart){
     totalProducts = req.user.cart.totalquantity
   }else{
-    totalquantity = 0
+    totalProducts = 0
  }
-  res.render('user/profile',{checkuser :true , checkProfile :true , totalProducts : totalProducts })
+ Order.find( {user : req.user._id} ,(err ,result)=>{
+  if (err) {
+       console.log(err)
+   }
+   console.log(result) 
+   res.render('user/profile',{checkuser :true , checkProfile :true , totalProducts : totalProducts , userOrder :result })
+ })
+ 
 })
 
 
