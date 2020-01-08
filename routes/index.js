@@ -225,7 +225,7 @@ router.post('/checkout', (req, res, next) => {
         address: req.body.address,
         name: req.body.name,
         paymentId: charge.id,
-        orderPrice: req.user.cart.totalPrice,
+        orderPrice:  req.user.cart.totalPrice,
       });
 
       order.save((err, result) => {
